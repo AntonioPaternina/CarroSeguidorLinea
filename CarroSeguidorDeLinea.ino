@@ -14,8 +14,8 @@ int PIN_SENSOR3 = 5;
 int PIN_SENSOR4 = 6;
 
 // CONSTANTES PARA VELOCIDAD DEL CARRO
-int PWM_AVANCE = 100;
-int PWM_GIRO = 100;
+int PWM_AVANCE = 150;
+int PWM_GIRO = 150;
 
 // VARIABLES DE INSTANCIA CON LOS VALORES DE LOS SENSORES
 bool sL;
@@ -23,7 +23,7 @@ bool sLL;
 bool sR;
 bool sRR;
 
-// VARIABLES DE INSTANCIA DE CONTROL DE EJECUCIÓN DEL PROGRAMA
+// VARIABLES DE INSTANCIA DE CONTROL DE EJECUCIï¿½N DEL PROGRAMA
 bool cruzandoIzquierda;
 bool cruzandoDerecha;
 bool cruzandoDerecho;
@@ -50,23 +50,31 @@ void setup() {
 void loop() {
 	leerSensores();
 	seguirLinea();
+  //Serial.println("inicio");
+  //Serial.println(digitalRead(PIN_SENSOR1));
+  //Serial.println(digitalRead(PIN_SENSOR2));
+  //Serial.println(digitalRead(PIN_SENSOR3));
+  //Serial.println(digitalRead(PIN_SENSOR4));
+  //Serial.println("fin");
+  //delay(1000);
 }
 
 void leerSensores() {
-	sLL = digitalRead(PIN_SENSOR1);
-	sL = digitalRead(PIN_SENSOR2);
-	sR = digitalRead(PIN_SENSOR3);
-	sRR = digitalRead(PIN_SENSOR4);
+	sLL = digitalRead(PIN_SENSOR4) == HIGH;
+	sL = digitalRead(PIN_SENSOR3) == HIGH;
+	sR = digitalRead(PIN_SENSOR2) == HIGH;
+	sRR = digitalRead(PIN_SENSOR1) == HIGH;
+
+  Serial.println(digitalRead(sLL));
+  Serial.println(digitalRead(sL));
+  Serial.println(digitalRead(sR));
+  Serial.println(digitalRead(sRR));
 }
 
 void seguirLinea() {
-	if (!sLL && !sRR) { // si los sensores laterales no detectan señal
+    Serial.println("simple");
 		algoritmoLineaSimple();
-	} else if ((sLL || sRR) // si alguno de los sensores laterales detecta señal es porque se trata de un giro L, T o +
-			&& ((cruzandoIzquierda || cruzandoDerecha || cruzandoDerecho)
-					|| contadorRetardo++ > 3)) { // esto es para dar tiempo a todos los sensores de encenderse en el caso de ángulos difíciles
-		algoritmoGiro90Grados();
-	}
+	
 
 	if (!sLL && !sRR && !sL && !sR) {
 		resetearFlagsControl();
@@ -74,12 +82,15 @@ void seguirLinea() {
 }
 
 void algoritmoLineaSimple() {
-	if (!sL && !sR) {
+	if (sL == 0 && sR == 0) {
+   Serial.println("derecho");
 		avanzarDerecho();
-	} else if (sR) {
-		girarDerecha();
-	} else if (sL) {
-		girarIzquierda();
+	} else if (sR == 1) {
+     Serial.println("derecha");
+ 		rotarDerecha();
+	} else if (sL == 1) {
+     Serial.println("izquierda");
+		rotarIzquierda();
 	}
 }
 
@@ -114,43 +125,43 @@ void algoritmoGiro90Grados() {
 }
 
 void rotarIzquierda() {
-	digitalWrite(PIN_DIR_A, LOW);
-	digitalWrite(PIN_BRAKE_A, LOW);
-	analogWrite(PIN_PWM_A, PWM_GIRO);
-
-	digitalWrite(PIN_DIR_B, HIGH);
-	digitalWrite(PIN_BRAKE_B, LOW);
-	analogWrite(PIN_PWM_B, PWM_GIRO);
-}
-
-void rotarDerecha() {
-	digitalWrite(PIN_DIR_A, HIGH);
-	digitalWrite(PIN_BRAKE_A, LOW);
-	analogWrite(PIN_PWM_A, PWM_GIRO);
-
 	digitalWrite(PIN_DIR_B, LOW);
 	digitalWrite(PIN_BRAKE_B, LOW);
 	analogWrite(PIN_PWM_B, PWM_GIRO);
-}
 
-void girarIzquierda() {
 	digitalWrite(PIN_DIR_A, HIGH);
 	digitalWrite(PIN_BRAKE_A, LOW);
-	analogWrite(PIN_PWM_A, (PWM_GIRO / 4));
+	analogWrite(PIN_PWM_A, PWM_GIRO);
+}
 
+void rotarDerecha() {
 	digitalWrite(PIN_DIR_B, HIGH);
 	digitalWrite(PIN_BRAKE_B, LOW);
 	analogWrite(PIN_PWM_B, PWM_GIRO);
+
+	digitalWrite(PIN_DIR_A, LOW);
+	digitalWrite(PIN_BRAKE_A, LOW);
+	analogWrite(PIN_PWM_A, PWM_GIRO);
+}
+
+void girarIzquierda() {
+	digitalWrite(PIN_DIR_B, HIGH);
+	digitalWrite(PIN_BRAKE_B, LOW);
+	analogWrite(PIN_PWM_B, 0);
+
+	digitalWrite(PIN_DIR_A, HIGH);
+	digitalWrite(PIN_BRAKE_A, LOW);
+	analogWrite(PIN_PWM_A, PWM_GIRO);
 }
 
 void girarDerecha() {
 	digitalWrite(PIN_DIR_A, HIGH);
 	digitalWrite(PIN_BRAKE_A, LOW);
-	analogWrite(PIN_PWM_A, PWM_GIRO);
+	analogWrite(PIN_PWM_A, 0);
 
 	digitalWrite(PIN_DIR_B, HIGH);
 	digitalWrite(PIN_BRAKE_B, LOW);
-	analogWrite(PIN_PWM_B, (PWM_GIRO / 4));
+	analogWrite(PIN_PWM_B, (PWM_GIRO));
 }
 
 void avanzarDerecho() {
