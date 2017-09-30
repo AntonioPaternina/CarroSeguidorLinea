@@ -104,26 +104,6 @@ void rotarDerecha() {
   analogWrite(PIN_PWM_A, PWM_GIRO);
 }
 
-void girarIzquierda() {
-  digitalWrite(PIN_DIR_B, HIGH);
-  digitalWrite(PIN_BRAKE_B, LOW);
-  analogWrite(PIN_PWM_B, 0);
-
-  digitalWrite(PIN_DIR_A, HIGH);
-  digitalWrite(PIN_BRAKE_A, LOW);
-  analogWrite(PIN_PWM_A, PWM_GIRO);
-}
-
-void girarDerecha() {
-  digitalWrite(PIN_DIR_A, HIGH);
-  digitalWrite(PIN_BRAKE_A, LOW);
-  analogWrite(PIN_PWM_A, 0);
-
-  digitalWrite(PIN_DIR_B, HIGH);
-  digitalWrite(PIN_BRAKE_B, LOW);
-  analogWrite(PIN_PWM_B, (PWM_GIRO));
-}
-
 void avanzarDerecho() {
   digitalWrite(PIN_DIR_A, HIGH);
   digitalWrite(PIN_BRAKE_A, LOW);
