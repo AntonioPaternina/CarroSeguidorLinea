@@ -1,4 +1,3 @@
-
 #include "Arduino.h"
 // PINES DE MOTOR SHIELD
 int PIN_PWM_A = 3;
@@ -15,14 +14,17 @@ int PIN_SENSOR3 = 5;
 int PIN_SENSOR4 = 6;
 
 // CONSTANTES PARA VELOCIDAD DEL CARRO
-int PWM_AVANCE = 150;
-int PWM_GIRO = 150;
+int PWM_AVANCE = 255;
+int PWM_GIRO = 255;
 
 // VARIABLES DE INSTANCIA CON LOS VALORES DE LOS SENSORES
-bool sL;
-bool sLL;
-bool sR;
-bool sRR;
+boolean sL;
+boolean sLL;
+boolean sR;
+boolean sRR;
+
+boolean hintIzquierda;
+boolean hintDerecha;
 
 void setup() {
   // ESTABLECER PINES DE SALIDA (AL MOTOR)
@@ -45,13 +47,7 @@ void setup() {
 void loop() {
   leerSensores();
   seguirLinea();
-  //Serial.println("inicio");
-  //Serial.println(digitalRead(PIN_SENSOR1));
-  //Serial.println(digitalRead(PIN_SENSOR2));
-  //Serial.println(digitalRead(PIN_SENSOR3));
-  //Serial.println(digitalRead(PIN_SENSOR4));
-  //Serial.println("fin");
-  //delay(1000);
+  //avanzarDerecho();
 }
 
 void leerSensores() {
@@ -59,49 +55,66 @@ void leerSensores() {
   sL = digitalRead(PIN_SENSOR3) == HIGH;
   sR = digitalRead(PIN_SENSOR2) == HIGH;
   sRR = digitalRead(PIN_SENSOR1) == HIGH;
-
-  Serial.println(digitalRead(sLL));
-  Serial.println(digitalRead(sL));
-  Serial.println(digitalRead(sR));
-  Serial.println(digitalRead(sRR));
 }
 
 void seguirLinea() {
-  Serial.println("simple");
   algoritmoLineaSimple();
 }
 
 void algoritmoLineaSimple() {
-  if (sL == 0 && sR == 0) {
-    Serial.println("derecho");
-    avanzarDerecho();
-  } else if (sR == 1 || sRR == 1) {
-    Serial.println("derecha");
-    rotarDerecha();
-  } else if (sL == 1 || sLL == 1) {
-    Serial.println("izquierda");
-    rotarIzquierda();
+  if (!hintDerecha && !hintIzquierda) {
+    if (!sL && !sR && !sLL && !sRR) {
+      avanzarDerecho();
+    } else if (sR || sRR) {
+      rotarDerecha();
+    } else if (sL || sLL) {
+      rotarIzquierda();
+    } else {
+      avanzarDerecho();
+    }
+  } else {
+    if (hintDerecha) {
+      rotarDerecha();
+    } else if (hintIzquierda) {
+      rotarIzquierda();
+    }
   }
+
+  if (sRR && !hintDerecha && !hintIzquierda) {
+    hintDerecha = true;
+  } else if (sLL && !hintDerecha && !hintIzquierda) {
+    hintIzquierda = true;
+  }
+
+  if (hintIzquierda && sR) {
+    hintIzquierda = false;
+    hintDerecha = false;
+  }
+  if (hintDerecha && sL) {
+    hintIzquierda = false;
+    hintDerecha = false;
+  }
+
 }
 
 void rotarIzquierda() {
-  digitalWrite(PIN_DIR_B, LOW);
-  digitalWrite(PIN_BRAKE_B, LOW);
-  analogWrite(PIN_PWM_B, PWM_GIRO);
-
   digitalWrite(PIN_DIR_A, HIGH);
   digitalWrite(PIN_BRAKE_A, LOW);
   analogWrite(PIN_PWM_A, PWM_GIRO);
+
+  digitalWrite(PIN_DIR_B, HIGH);
+  digitalWrite(PIN_BRAKE_B, LOW);
+  analogWrite(PIN_PWM_B, 0);
 }
 
 void rotarDerecha() {
+  digitalWrite(PIN_DIR_A, HIGH);
+  digitalWrite(PIN_BRAKE_A, LOW);
+  analogWrite(PIN_PWM_A, 0);
+
   digitalWrite(PIN_DIR_B, HIGH);
   digitalWrite(PIN_BRAKE_B, LOW);
   analogWrite(PIN_PWM_B, PWM_GIRO);
-
-  digitalWrite(PIN_DIR_A, LOW);
-  digitalWrite(PIN_BRAKE_A, LOW);
-  analogWrite(PIN_PWM_A, PWM_GIRO);
 }
 
 void avanzarDerecho() {
